@@ -16,16 +16,20 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Run Gitleaks
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      - name: Run Gitleaks (full tree scan)
         uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --source . --no-git --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Block tracked secret-like files
-        shell: bash
         run: |
           set -euo pipefail
 
@@ -40,9 +44,7 @@ jobs:
             echo "${tracked_secret_files}"
             exit 1
           fi
-
       - name: Block private key material
-        shell: bash
         run: |
           set -euo pipefail
 
